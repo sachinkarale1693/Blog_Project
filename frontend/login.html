@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+</head>
+<body>
+  <h1>Login</h1>
+  <form id="loginForm">
+    <label for="email">Email:</label>
+    <input type="email" name="email" required /><br><br>
+    <label for="password">Password:</label>
+    <input type="password" name="password" required /><br><br>
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+    document.getElementById('loginForm').onsubmit = async (e) => {
+      e.preventDefault(); // Prevent the form from submitting normally
+      const form = new FormData(e.target); // Create FormData from the form elements
+
+      const data = Object.fromEntries(form); // Convert FormData to plain object
+
+      // Send POST request to login API
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data) // Sending data as JSON
+      });
+
+      // Handle the response
+      if (res.ok) {
+        const result = await res.json();
+        localStorage.setItem('token', result.token); // Store the JWT token in localStorage
+        localStorage.setItem('image', result.image); // Store the image URL/path in localStorage
+
+        // Redirect to the dashboard
+        location.href = 'dashboard.html';
+      } else {
+        const error = await res.json();
+        alert(error.message || 'Error logging in');
+      }
+    };
+  </script>
+</body>
+</html>
