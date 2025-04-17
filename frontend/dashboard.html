@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h1>Dashboard</h1>
+
+
+  <div id="userProfile">
+    <h2>Welcome, <span id="userName"></span></h2>
+    <img id="profileImage" src="" alt="Profile Image" width="100">
+  </div>
+
+  <h2>Your Blogs</h2>
+  <form id="blogForm" enctype="multipart/form-data">
+    <label for="title">Blog Title</label>
+    <input type="text" name="title" id="title" required />
+    
+    <label for="description">Description</label>
+    <textarea name="description" id="description" required></textarea>
+    
+    <label for="image">Image</label>
+    <input type="file" name="image" id="image" />
+    
+    <button type="submit">Create Blog</button>
+  </form>
+
+  <h2>Blogs</h2>
+  <div id="blogs"></div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    // Display user info
+    async function loadUserInfo() {
+      try {
+        const res = await fetch('/api/auth/profile', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        const user = await res.json();
+        document.getElementById('userName').textContent = user.email;
+        document.getElementById('profileImage').src = user.image || 'default_profile.png';
+      } catch (err) {
+        console.error('Error loading user info:', err);
+      }
+    }
+
+
+    document.getElementById('blogForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+
+      const res = await fetch('/api/blogs', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+        body: form
+      });
+
+      if (res.ok) {
+        loadBlogs();
+      } else {
+        alert('Error creating blog');
+      }
+    };
+
+    async function loadBlogs() {
+      try {
+        const res = await fetch('/api/blogs', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        const blogs = await res.json();
+        document.getElementById('blogs').innerHTML = blogs.map(b => `
+          <div>
+            <h3>${b.title}</h3>
+            <img src="${b.image}" width="100" alt="Blog Image">
+            <p>${b.description}</p>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading blogs:', err);
+      }
+    }
+
+    loadUserInfo();
+    loadBlogs();
+  </script>
+</body>
+</html>
